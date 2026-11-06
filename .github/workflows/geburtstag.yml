@@ -1,0 +1,17 @@
+name: Geburtstags-Mail
+on:
+  schedule:
+    - cron: "0 7 * * *"   # täglich 07:00 UTC, also 08:00 oder 09:00 in Zürich
+  workflow_dispatch:
+    inputs:
+      datum:
+        description: "Test: Datum TT.MM (leer = heute)"
+        required: false
+jobs:
+  senden:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 send.py "${{ inputs.datum }}"
+        env:
+          GMX_PASSWORD: ${{ secrets.GMX_PASSWORD }}
