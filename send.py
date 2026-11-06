@@ -16,16 +16,24 @@ from zoneinfo import ZoneInfo
 
 MAIL = "matti.flueckiger@gmx.ch"
 ROOT = Path(__file__).resolve().parent
+PROTOKOLL = ROOT / "gesendet.txt"  # "JJJJ-MM-TT Name": mehrere Versuche pro Morgen, aber nur eine Mail
 
 
 def main():
     args = [a for a in sys.argv[1:] if a != "--trocken"]
     trocken = "--trocken" in sys.argv
-    datum = args[0] if args and args[0] else datetime.datetime.now(ZoneInfo("Europe/Zurich")).strftime("%d.%m")
+    test = bool(args and args[0])
+    jetzt = datetime.datetime.now(ZoneInfo("Europe/Zurich"))
+    datum = args[0] if test else jetzt.strftime("%d.%m")
+    schon = set(PROTOKOLL.read_text(encoding="utf-8").splitlines()) if PROTOKOLL.exists() else set()
     treffer = [z.split(";") for z in (ROOT / "geburtstage.csv").read_text(encoding="utf-8").splitlines()
                if z.startswith(datum + ";")]
     print(f"{datum}: {len(treffer)} Geburtstag(e)")
     for _, name, datei in treffer:
+        eintrag = f"{jetzt:%Y-%m-%d} {name}"
+        if not test and eintrag in schon:
+            print(name, "schon gesendet")
+            continue
         bild = ROOT / "stories" / datei
         print(name, datei, "ok" if bild.exists() else "FEHLT")
         if trocken:
@@ -40,6 +48,9 @@ def main():
             s.login(MAIL, os.environ["GMX_PASSWORD"])
             s.send_message(m)
         print("gesendet")
+        if not test:
+            with PROTOKOLL.open("a", encoding="utf-8") as f:
+                f.write(eintrag + "\n")
 
 
 if __name__ == "__main__":
