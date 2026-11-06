@@ -1,9 +1,0 @@
-name: Herzschlag-Test
-on:
-  schedule:
-    - cron: "*/5 * * * *"   # nur Test, ob GitHub geplante Läufe startet; sendet keine Mail
-jobs:
-  puls:
-    runs-on: ubuntu-latest
-    steps:
-      - run: date -u
